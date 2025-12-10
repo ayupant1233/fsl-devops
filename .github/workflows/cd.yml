@@ -40,10 +40,9 @@ jobs:
       - name: Define Image
         id: image-uri
         run: |
-           IMAGE_URI="${{ secret.ECR_REPO_URL }}:v1"
-           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_OUTPUT
-
-      - name: Setup Ssh
+          IMAGE_URI="${{ secret.ECR_REPO_URL }}:v1"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4h
       - uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
