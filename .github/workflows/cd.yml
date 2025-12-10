@@ -65,7 +65,7 @@ jobs:
                 --username AWS \
                 --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-            IMAGE_UR="${{ steps.image-uri.outputs.IMAGE_URI }}"
+            IMAGE_URI="${{ steps.image-uri.outputs.IMAGE_URI }}"
             echo "pulling new imgae"
             docker pull $IMAGE_URI
 
