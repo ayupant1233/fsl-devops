@@ -1,0 +1,76 @@
+name: CD to EC2 with ECR
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v5.1.1
+      with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secret.AWS_REGION }}
+        
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Define Image URI
+      id: image-uri
+      run: |
+        IMAGE_URI="${{ secret.ECR_REPO_URL }}:v1"
+        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+    - name: Build Image
+      run: docker build -t ${{ steps.image-uri.outputs.IMAGE_URI }}
+
+    - name: Push Image
+      run: docker push ${{ steps.image-uri.outputs.IMAGE_URI }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Define Image
+        id: image-uri
+        run: |
+           IMAGE_URI="${{ secret.ECR_REPO_URL }}:v1"
+           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+      - name: Setup Ssh
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Add key to knownhost
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          ssh ${{ secret.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+
+            echo "logging successfull"
+            echo "logging to ecr" 
+            aws ecr get-login-password \
+                --region ${{ secret.AWS_REGION }} \
+            | docker login \
+                --username AWS \
+                --password-stdin ${{ secret.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secret.AWS_REGION }}.amazonaws.com
+
+            IMAGE_UR="${{ steps.image-uri.outputs.IMAGE_URI }}"
+            echo "pulling new imgae"
+            docker pull $IMAGE_URI
+
+            echo "starting container"
+            docker run -d --name fsl-dev-app -p 8080:8080 $IMAGE_URI
+            echo "deployment complete"
+          EOF

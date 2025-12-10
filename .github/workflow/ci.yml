@@ -1,0 +1,15 @@
+name: GitHub Actions Demo
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  CI test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 15
+        cache: 'npm'
+    - run: cd codebase/rdicidr-0.1.0 && npm ci
+    - run: cd codebase/rdicidr-0.1.0  && npm lint
