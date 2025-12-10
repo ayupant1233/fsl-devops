@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./Octet.css";
+import "./Octet.css"
 
 const Octet = (props) => {
   const [message, setMessage] = useState("");
