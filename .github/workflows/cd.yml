@@ -28,7 +28,7 @@ jobs:
         echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_OUTPUT
 
     - name: Build Image
-      run: docker build -t ${{ steps.image-uri.outputs.IMAGE_URI }} codebase/rdicidr-0.1.0/Dockerfile codebase/rdicidr-0.1.0
+      run: docker build -t ${{ steps.image-uri.outputs.IMAGE_URI }} -f codebase/rdicidr-0.1.0/Dockerfile codebase/rdicidr-0.1.0
 
     - name: Push Image
       run: docker push ${{ steps.image-uri.outputs.IMAGE_URI }}
