@@ -24,7 +24,7 @@ jobs:
     - name: Define Image URI
       id: image-uri
       run: |
-        IMAGE_URI="${{ secret.ECR_REPO_URL }}:v1"
+        IMAGE_URI="${{ secrets.ECR_REPO_URL }}:v1"
         echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_OUTPUT
 
     - name: Build Image
@@ -40,7 +40,7 @@ jobs:
       - name: Define Image
         id: image-uri
         run: |
-          IMAGE_URI="${{ secret.ECR_REPO_URL }}:v1"
+          IMAGE_URI="${{ secrets.ECR_REPO_URL }}:v1"
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4h
       - uses: webfactory/ssh-agent@v0.9.0
@@ -55,15 +55,15 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh ${{ secret.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
 
             echo "logging successfull"
             echo "logging to ecr" 
             aws ecr get-login-password \
-                --region ${{ secret.AWS_REGION }} \
+                --region ${{ secrets.AWS_REGION }} \
             | docker login \
                 --username AWS \
-                --password-stdin ${{ secret.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secret.AWS_REGION }}.amazonaws.com
+                --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
             IMAGE_UR="${{ steps.image-uri.outputs.IMAGE_URI }}"
             echo "pulling new imgae"
